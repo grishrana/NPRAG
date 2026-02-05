@@ -71,7 +71,7 @@ def chat(prompt: str):
         model=MODEL,
         contents=prompt,
     )
-    return response.text
+    return response
 
 if __name__ == "__main__":
     while True:
