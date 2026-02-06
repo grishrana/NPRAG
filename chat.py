@@ -1,29 +1,25 @@
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 from typing import List
 import numpy as np
 from google import genai
 from dotenv import load_dotenv
 import os
-from qdrant_client import QdrantClient
+# from qdrant_client import QdrantClient
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', "")
 QDRANT_URL = os.getenv('QDRANT_URL')
 QDRANT_COLLECTION = os.getenv('QDRANG_COLLECTION', "NPRAG")
-MODEL = "gemini-2.5-flash"
-
-EMBED_MODEL="BAAI/bge-m3"
-VECTOR_SIZE=1024
-TOP_K=5
+MODEL = os.getenv('MODEL', "gemini-2.5-flash")
 
 # clietns
 
-q_client = QdrantClient(url=QDRANT_URL)
-embedder = SentenceTransformer(EMBED_MODEL)
+# q_client = QdrantClient(url=QDRANT_URL)
+# embedder = SentenceTransformer(EMBED_MODEL)
 gem_client = genai.Client(api_key=GEMINI_API_KEY)
 
-def retrieve(query: str, top_k: int = TOP_K):
+def retrieve(query:str,q_client, embedder, top_k: int = 5):
     query_vec= embedder.encode([query], convert_to_numpy=True, normalize_embeddings=True)[0].astype(np.float32)
     results = q_client.query_points(collection_name=QDRANT_COLLECTION,
                              query=query_vec.tolist(),
@@ -60,8 +56,8 @@ def build_prompt(question: str, contexts: List[str]):
     Answer:
     """.strip()
 
-def chat(prompt: str):
-    contexts = retrieve(prompt)
+def chat(prompt: str, q_client, embedder, top_k: int = 5):
+    contexts = retrieve(prompt, q_client=q_client, embedder=embedder, top_k=top_k)
     if not contexts:
         return "माफ गर्नुहोस्, उपलब्ध सन्दर्भमा उत्तर फेला परेन।"
 
@@ -78,4 +74,4 @@ if __name__ == "__main__":
         q = input("\nAsk: ").strip()
         if q.lower() in {"exit", "quit"}:
             break
-        print("\nAnswer:\n", chat(q))
+        # print("\nAnswer:\n", chat(q))

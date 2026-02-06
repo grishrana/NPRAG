@@ -6,5 +6,18 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - qdrant
+    volumes:
+      # presist HF model cache so bge-m3 is downloaded only once
+      - hf_cache:/data/hf
+
 volumes:
   qdrant_data:
+  hf_cache:
